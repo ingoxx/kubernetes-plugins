@@ -9,14 +9,14 @@ import (
 )
 
 // 定义插件名称，这是在 KubeSchedulerConfiguration 中引用的名字
-const Name = "MyCustomFilter"
+const PluginName = "MyCustomFilter"
 const AllowedLabelKey = "scheduler.alpha.io/allowed"
 
 // MyCustomFilter 实现了 Filter 接口
 type MyCustomFilter struct{}
 
 // New 初始化插件
-func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
+func New(ctx context.Context, obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
 
 	// obj 用于接收配置参数 (如果有的话)
 	return &MyCustomFilter{}, nil
@@ -24,7 +24,7 @@ func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) 
 
 // Name 返回插件的名称
 func (m *MyCustomFilter) Name() string {
-	return Name
+	return PluginName
 }
 
 // Filter 是核心方法，用于检查 Pod 是否可以在 Node 上运行
