@@ -1,4 +1,4 @@
-package scheduler
+package nodeSelect
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"k8s.io/kubernetes/pkg/scheduler/framework"
 )
 
-// 定义插件名称，这是在 KubeSchedulerConfiguration 中引用的名字
 const PluginName = "MyCustomFilter"
 const AllowedLabelKey = "scheduler.alpha.io/allowed"
 
@@ -16,7 +15,7 @@ const AllowedLabelKey = "scheduler.alpha.io/allowed"
 type MyCustomFilter struct{}
 
 // New 初始化插件
-func New(ctx context.Context, obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
+func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
 
 	// obj 用于接收配置参数 (如果有的话)
 	return &MyCustomFilter{}, nil
