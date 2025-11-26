@@ -1,16 +1,22 @@
-# 使用一个最小化的基础镜像，如 scratch 或 alpine
-FROM gotec007/go:v1.22 AS builder
-ARG TARGETOS
-ARG TARGETARCH
+# --- Stage 1: Build Environment ---
+FROM golang:1.20 AS builder
 
-# 设置工作目录
 WORKDIR /app
+# 复制 go.mod 和 go.sum，先下载依赖以加速后续构建
+COPY go.mod go.sum ./
 
-# 复制您编译好的调度器可执行文件
-COPY scheduler-plugin-custom .
+# 复制所有源码
+COPY pkg cmd ./
 
-# (可选) 复制您的调度器配置，如果需要自定义配置的话
-# COPY scheduler-config.yaml /etc/kubernetes/scheduler-config.yaml
+# 编译命令：生成 Linux 兼容的静态链接可执行文件
+RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o custom-scheduler ./cmd/scheduler/gpuSelect/main.go
 
-# 定义容器启动时运行的命令
-ENTRYPOINT ["/app/scheduler-plugin-custom"]
+# --- Stage 2: Final Minimal Image ---
+# 使用 scratch 或 distroless 基础镜像以获得最高的安全性
+FROM gcr.io/distroless/static-debian12
+
+# 复制编译好的可执行文件
+COPY --from=builder /app/custom-scheduler /usr/local/bin/custom-scheduler
+
+# 容器启动命令
+ENTRYPOINT ["/usr/local/bin/custom-scheduler"]

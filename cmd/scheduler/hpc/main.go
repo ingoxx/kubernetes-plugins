@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ingoxx/kubernetes-plugins/pkg/scheduler/nodeSelect"
+	"github.com/ingoxx/kubernetes-plugins/pkg/scheduler/hpc"
 	"os"
 
 	"k8s.io/klog/v2"
@@ -11,7 +11,7 @@ import (
 
 func main() {
 	command := app.NewSchedulerCommand(
-		app.WithPlugin(nodeSelect.PluginName, nodeSelect.New),
+		app.WithPlugin(hpc.GangPreFilterName, hpc.NewGangPreFilter),
 	)
 
 	if err := command.Execute(); err != nil {
