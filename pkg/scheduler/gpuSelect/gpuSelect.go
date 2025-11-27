@@ -20,23 +20,30 @@ func (g *GpuTopologyFilter) Name() string {
 func (g *GpuTopologyFilter) Filter(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
 	node := nodeInfo.Node()
 
-	// 1. 检查 Pod 是否请求了特定的 GPU 型号 (简化判断)
-	if pod.ObjectMeta.Annotations["requires-gpu-model"] != "A100" {
-		// 如果 Pod 没有特定要求，通过
+	// 1. 检查 Pod 是否请求了特定的 GPU 型号 (A100)
+	requiredModel, ok := pod.ObjectMeta.Annotations["requires-gpu-model"]
+
+	// 如果 Pod 没有 Annotation 或请求的不是 A100，直接通过（不干预）
+	// 您可以根据实际需求修改这里的逻辑，但我们假设只有请求A100的Pod才需要拓扑检查
+	if !ok || requiredModel != "A100" {
 		return framework.NewStatus(framework.Success, "")
 	}
 
+	// --- 只有请求 A100 的 Pod 才会执行下面的检查 ---
+
 	// 2. 检查 Node 是否有 A100 标签
 	if model, ok := node.Labels[RequiredGpuModel]; !ok || model != "A100" {
-		return framework.NewStatus(framework.Unschedulable, "Node does not have A100 GPU label")
+		// 调度器会拒绝此 Pod，并给出原因
+		return framework.NewStatus(framework.Unschedulable, "Node does not have A100 GPU label as required by pod")
 	}
 
-	// 3. 检查 NUMA 拓扑（这里是概念性占位，实际需要更复杂的库和 Node 资源拓扑信息）
-	// 假设 Node 的标签表明它支持 NUMA 感知调度
-	if _, ok := node.Labels["topology.aware/numa-ready"]; !ok {
-		return framework.NewStatus(framework.Unschedulable, "Node is not NUMA topology ready")
+	// 3. 检查 NUMA 拓扑
+	// 修正：检查标签是否存在且值为 "true"
+	if value, ok := node.Labels["topology.aware/numa-ready"]; !ok || value != "true" {
+		return framework.NewStatus(framework.Unschedulable, "Node is not NUMA topology ready or label is false")
 	}
 
+	// 所有检查通过
 	return framework.NewStatus(framework.Success, "")
 }
 

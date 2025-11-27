@@ -6,10 +6,12 @@ WORKDIR /app
 COPY go.mod go.sum ./
 
 # 复制所有源码
-COPY pkg cmd ./
+COPY pkg/ pkg/
+COPY cmd/ cmd/
+
 
 # 编译命令：生成 Linux 兼容的静态链接可执行文件
-RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o custom-scheduler ./cmd/scheduler/gpuSelect/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o custom-scheduler cmd/scheduler/gpuSelect/main.go
 
 # --- Stage 2: Final Minimal Image ---
 # 使用 scratch 或 distroless 基础镜像以获得最高的安全性
@@ -20,3 +22,4 @@ COPY --from=builder /app/custom-scheduler /usr/local/bin/custom-scheduler
 
 # 容器启动命令
 ENTRYPOINT ["/usr/local/bin/custom-scheduler"]
+
