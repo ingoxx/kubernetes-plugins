@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: custom-filter-scheduler-deployment
+  namespace: web
+  labels:
+    app: custom-filter-scheduler
+spec:
+  replicas: 2 # 生产环境推荐至少 2 个副本和 Leader Election
+  selector:
+    matchLabels:
+      app: custom-filter-scheduler
+  template:
+    metadata:
+      labels:
+        app: custom-filter-scheduler
+    spec:
+      serviceAccountName: custom-scheduler-sa
+      containers:
+      - name: custom-scheduler-container
+        image: gotec007/kubernetes-scheduler-plugins:v2 # 👈 替换为您的镜像路径
+        imagePullPolicy: Always
+        command:
+        # command: 指定要执行的可执行文件路径（代替 ENTRYPOINT）
+        - /usr/local/bin/custom-scheduler 
+        args:
+        # args: 指定传递给该可执行文件的参数
+        - --config=/etc/kubernetes/scheduler-config.yaml
+        - --leader-elect=true
+        - --leader-elect-resource-namespace=web # 使用您的命名空间
+        - --leader-elect-resource-name=custom-scheduler-lease # 👈 确保名称唯一
+        # 挂载 ConfigMap 作为配置文件
+        volumeMounts:
+        - name: scheduler-config-volume
+          mountPath: /etc/kubernetes/scheduler-config.yaml
+          subPath: scheduler-config.yaml
+      volumes:
+      - name: scheduler-config-volume
+        configMap:
+          name: custom-scheduler-config-cm

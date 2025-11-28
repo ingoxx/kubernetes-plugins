@@ -1,0 +1,25 @@
+# 授予 Lease 权限的 Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: custom-scheduler-lease-updater
+  namespace: web 
+rules:
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get", "create", "update", "patch"] # 核心 Leader Election 权限
+---
+# 将 Lease 权限绑定到 ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bind-custom-scheduler-lease
+  namespace: web
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: custom-scheduler-lease-updater # 👈 引用上方 Role 的名称
+subjects:
+- kind: ServiceAccount
+  name: custom-scheduler-sa
+  namespace: web

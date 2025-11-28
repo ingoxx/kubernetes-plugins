@@ -1,0 +1,16 @@
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+leaderElection:
+  leaderElect: true
+  # 必须是唯一的名称，不能与系统默认的 "kube-scheduler" 相同
+  resourceName: custom-gpu-scheduler-lease
+  resourceNamespace: web
+# --- 关键修复结束 ---
+profiles:
+  # 这是你在 Pod 的 spec.schedulerName 中需要填写的名字
+  - schedulerName: custom-filter-scheduler
+    plugins:
+      filter:
+        enabled:
+          # 对应你 Go 代码中 GpuFilterName 常量的值
+          - name: GpuTopologyFilter

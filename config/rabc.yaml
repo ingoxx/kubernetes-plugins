@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bind-custom-scheduler-config-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: custom-scheduler-config-reader # 👈 引用上一步创建的 ClusterRole
+subjects:
+- kind: ServiceAccount
+  name: custom-scheduler-sa
+  namespace: web # 👈 确保命名空间正确 (您 Deployment 所在的命名空间)
