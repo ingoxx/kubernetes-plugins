@@ -26,7 +26,7 @@ spec:
         args:
         # args: 指定传递给该可执行文件的参数
         - --config=/etc/kubernetes/scheduler-config.yaml
-        - --leader-elect=true
+        - --leader-elect=true
         - --leader-elect-resource-namespace=web # 使用您的命名空间
         - --leader-elect-resource-name=custom-scheduler-lease # 👈 确保名称唯一
         # 挂载 ConfigMap 作为配置文件

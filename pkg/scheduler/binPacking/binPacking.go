@@ -11,7 +11,7 @@ import (
 // BinPackScoreName 是插件的名称
 const BinPackScoreName = "DynamicBinPackScore"
 
-// RealtimeCPUUtilizationAnnotation AnnotationKey 假定 Node Annotations 中存储了实时 CPU 利用率百分比
+// RealtimeCPUUtilizationAnnotation AnnotationKey 假定 Node Annotations 中存储了平均5分钟的 CPU 负载
 const RealtimeCPUUtilizationAnnotation = "custom.scheduler.io/realtime-cpu-percent"
 
 type DynamicBinPackScore struct {
