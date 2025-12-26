@@ -1,0 +1,43 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: custom-scheduler-config-reader
+rules:
+  # ... (现有规则，如 system:kube-scheduler 或 leases 权限) ...
+
+  # 1. 允许读取 StorageClasses (解决当前错误)
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+
+  # 2. 允许读取 kube-system 中的核心 ConfigMaps (解决上一个错误)
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+    resourceNames: ["extension-apiserver-authentication"]
+
+  # 3. 核心调度权限 (确保您可以调度)
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "persistentvolumeclaims", "persistentvolumes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/binding"]
+    verbs: ["create"]
+  # 4. 展示事件
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bind-custom-scheduler-config-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: custom-scheduler-config-reader # 👈 引用上一步创建的 ClusterRole
+subjects:
+  - kind: ServiceAccount
+    name: custom-scheduler-sa
+    namespace: web # 👈 确保命名空间正确 (您 Deployment 所在的命名空间)

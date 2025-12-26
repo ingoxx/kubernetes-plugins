@@ -1,0 +1,7 @@
+# 必须显式创建 ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: custom-scheduler-sa
+  namespace: web
+  
